@@ -1,19 +1,107 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Email Localizer</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LingoFormat – HTML Email Processor</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 60px auto;
+      padding: 30px;
+      background: #111827;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #94a3b8;
+      margin-bottom: 20px;
+    }
+
+    input[type="file"] {
+      display: block;
+      margin: 20px 0;
+      padding: 10px;
+      background: #1f2937;
+      border: 1px solid #334155;
+      border-radius: 6px;
+      color: #fff;
+    }
+
+    button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #38bdf8;
+    }
+
+    #output {
+      margin-top: 20px;
+      padding: 15px;
+      background: #0b1220;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      min-height: 150px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+    }
+  </style>
 </head>
+
 <body>
-  <h2>Email Localizer</h2>
 
-  <input type="file" id="htmlFile" accept=".html"><br><br>
-  <input type="file" id="docxFile" accept=".docx"><br><br>
+  <div class="container">
+    <h1>📧 LingoFormat</h1>
+    <p>Upload HTML email and process it using AI-powered formatting & translation.</p>
 
-  <button id="generateBtn">Generate</button>
+    <input type="file" id="htmlFile" accept=".html" />
+    <button id="generateBtn">Generate</button>
 
-  <div id="status">Idle</div>
-  <pre id="output"></pre>
+    <div id="status">Idle</div>
+
+    <div id="output">Output will appear here...</div>
+
+    <div class="footer">
+      Powered by Vercel + OpenAI API
+    </div>
+  </div>
 
   <script src="script.js"></script>
+
 </body>
 </html>
