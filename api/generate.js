@@ -1,24 +1,40 @@
-
 const mammoth = require("mammoth");
 const archiver = require("archiver");
 
-module.exports = async function handler(req, res) {
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "20mb",
+    },
+  },
+};
+
+export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
     const { htmlBase64, docxBase64 } = req.body;
-    if (!htmlBase64 || !docxBase64) return res.status(400).json({ error: "Missing files" });
+
+    if (!htmlBase64 || !docxBase64)
+      return res.status(400).json({ error: "Missing htmlBase64 or docxBase64 in request body" });
 
     const htmlContent = Buffer.from(htmlBase64, "base64").toString("utf-8");
     const docxBuffer = Buffer.from(docxBase64, "base64");
     const { value: docxText } = await mammoth.extractRawText({ buffer: docxBuffer });
 
+    if (!docxText || docxText.trim().length === 0)
+      return res.status(400).json({ error: "DOCX file appears to be empty or unreadable" });
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey)
+      return res.status(500).json({ error: "ANTHROPIC_API_KEY environment variable is not set" });
+
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: "claude-3-5-sonnet-latest",
@@ -43,22 +59,35 @@ For each language, output a block like:
 <!-- LANG: French -->
 <full html here>
 <!-- END -->`,
-        messages: [{
-          role: "user",
-          content: `English HTML email:\n${htmlContent}\n\n---\nTranslation document:\n${docxText}`
-        }]
-      })
+        messages: [
+          {
+            role: "user",
+            content: `English HTML email:\n${htmlContent}\n\n---\nTranslation document:\n${docxText}`,
+          },
+        ],
+      }),
     });
 
+    const claudeBody = await claudeRes.text();
+
     if (!claudeRes.ok) {
-      const err = await claudeRes.text();
-      return res.status(500).json({ error: "Claude API error", detail: err });
+      console.error("Claude API error:", claudeRes.status, claudeBody);
+      return res.status(500).json({
+        error: "Claude API error",
+        status: claudeRes.status,
+        detail: claudeBody,
+      });
     }
 
-    const claudeData = await claudeRes.json();
-    const rawText = claudeData.content.find(b => b.type === "text")?.text || "";
+    let claudeData;
+    try {
+      claudeData = JSON.parse(claudeBody);
+    } catch {
+      return res.status(500).json({ error: "Failed to parse Claude response", raw: claudeBody.slice(0, 500) });
+    }
 
-    // Parse language blocks
+    const rawText = claudeData.content?.find((b) => b.type === "text")?.text || "";
+
     const blockRegex = /<!--\s*LANG:\s*(.+?)\s*-->([\s\S]*?)<!--\s*END\s*-->/gi;
     const languages = [];
     let match;
@@ -67,10 +96,13 @@ For each language, output a block like:
     }
 
     if (!languages.length) {
-      return res.status(500).json({ error: "No language blocks found in Claude response", raw: rawText.slice(0, 500) });
+      console.error("No language blocks found. Raw Claude output:", rawText.slice(0, 1000));
+      return res.status(500).json({
+        error: "No language blocks found in Claude response",
+        raw: rawText.slice(0, 1000),
+      });
     }
 
-    // Build ZIP
     res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-Disposition", "attachment; filename=localized_emails.zip");
 
@@ -83,9 +115,9 @@ For each language, output a block like:
     }
 
     await archive.finalize();
-
   } catch (err) {
-    console.error(err);
-    if (!res.headersSent) res.status(500).json({ error: err.message });
+    console.error("Unhandled error:", err);
+    if (!res.headersSent)
+      res.status(500).json({ error: err.message || "Internal server error" });
   }
-};
+}
