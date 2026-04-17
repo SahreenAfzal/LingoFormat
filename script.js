@@ -5,7 +5,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function generate() {
-  const htmlFile = document.getElementById("htmlFile").files[0];
+  console.log("generate function called");
+
+  const fileInput = document.getElementById("htmlFile");
+  const htmlFile = fileInput.files[0];
 
   if (!htmlFile) {
     alert("Upload HTML file");
@@ -15,24 +18,23 @@ async function generate() {
   const html = await htmlFile.text();
 
   try {
-   
+    const res = await fetch("https://lingoformat.vercel.app/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ html })
+    });
 
-  const res = await fetch("https://lingoformat.vercel.app/api/generate", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ html })
-});
+    const data = await res.json();
 
-const data = await res.json();
+    console.log("API RESPONSE:", data);
 
+    document.getElementById("output").textContent =
+      data.message || JSON.stringify(data, null, 2);
 
- document.getElementById("output").textContent =
-  `${data.message}\nHTML size: ${data.receivedHTMLLength}`;
-
-  } catch (e) {
-    alert("API error");
-    console.error(e);
+  } catch (err) {
+    console.error("Frontend error:", err);
+    alert("Something went wrong");
   }
 }
