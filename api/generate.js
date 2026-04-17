@@ -21,6 +21,8 @@ export default async function handler(req, res) {
   });
 
   const data = await response.json();
+  console.log("OPENAI RAW:", data); // 👈 ADD HERE
+
   res.status(200).json({
     output: data.choices?.[0]?.message?.content || ""
   });
