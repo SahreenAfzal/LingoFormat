@@ -14,13 +14,16 @@ async function generate() {
   }
 
   try {
+    // STEP 1: UI status
     status.textContent = "Reading files...";
 
+    // STEP 2: Convert to base64
     const htmlBase64 = await fileToBase64(htmlFile);
     const docxBase64 = await fileToBase64(docxFile);
 
-    status.textContent = "Sending to server...";
+    status.textContent = "Sending to AI...";
 
+    // STEP 3: API call
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: {
@@ -32,16 +35,26 @@ async function generate() {
       })
     });
 
+    // STEP 4: HANDLE ERROR RESPONSE (IMPORTANT NEW PART)
     if (!res.ok) {
-      const err = await res.json();
-      console.error(err);
-      alert(err.error || "Something went wrong");
-      status.textContent = "Error";
+      let errMsg = "Unknown error";
+
+      try {
+        const err = await res.json();
+        errMsg = err.error || errMsg;
+        console.error("Backend error:", err);
+      } catch (e) {
+        console.error("Non-JSON error response");
+      }
+
+      status.textContent = "Error ❌";
+      alert(errMsg);
       return;
     }
 
     status.textContent = "Generating ZIP...";
 
+    // STEP 5: Download ZIP
     const blob = await res.blob();
 
     const url = URL.createObjectURL(blob);
@@ -53,15 +66,18 @@ async function generate() {
     a.click();
     a.remove();
 
+    URL.revokeObjectURL(url);
+
     status.textContent = "Download complete ✔";
 
   } catch (err) {
     console.error(err);
-    status.textContent = "Failed";
-    alert("Something went wrong");
+    status.textContent = "Failed ❌";
+    alert("Something went wrong while generating email");
   }
 }
 
+// Convert file → base64
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
