@@ -1,88 +1,100 @@
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("generateBtn").addEventListener("click", generate);
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LingoFormat</title>
 
-async function generate() {
-  const status = document.getElementById("status");
-
-  const htmlFile = document.getElementById("htmlFile").files[0];
-  const docxFile = document.getElementById("docxFile").files[0];
-
-  if (!htmlFile || !docxFile) {
-    alert("Please upload both HTML and DOCX files");
-    return;
-  }
-
-  try {
-    // STEP 1: UI status
-    status.textContent = "Reading files...";
-
-    // STEP 2: Convert to base64
-    const htmlBase64 = await fileToBase64(htmlFile);
-    const docxBase64 = await fileToBase64(docxFile);
-
-    status.textContent = "Sending to AI...";
-
-    // STEP 3: API call
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        html: htmlBase64.split(",")[1],
-        file: docxBase64.split(",")[1]
-      })
-    });
-
-    // STEP 4: HANDLE ERROR RESPONSE (IMPORTANT NEW PART)
-    if (!res.ok) {
-      let errMsg = "Unknown error";
-
-      try {
-        const err = await res.json();
-        errMsg = err.error || errMsg;
-        console.error("Backend error:", err);
-      } catch (e) {
-        console.error("Non-JSON error response");
-      }
-
-      status.textContent = "Error ❌";
-      alert(errMsg);
-      return;
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
     }
 
-    status.textContent = "Generating ZIP...";
+    .container {
+      width: 420px;
+      background: #111827;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
 
-    // STEP 5: Download ZIP
-    const blob = await res.blob();
+    h2 {
+      margin: 0 0 16px;
+      font-size: 20px;
+    }
 
-    const url = URL.createObjectURL(blob);
+    input {
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      background: #0b1220;
+      color: white;
+    }
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "localized_emails.zip";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #3b82f6;
+      border: none;
+      color: white;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
 
-    URL.revokeObjectURL(url);
+    button:hover {
+      background: #2563eb;
+    }
 
-    status.textContent = "Download complete ✔";
+    #status {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #38bdf8;
+      min-height: 18px;
+    }
 
-  } catch (err) {
-    console.error(err);
-    status.textContent = "Failed ❌";
-    alert("Something went wrong while generating email");
-  }
-}
+    .hint {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
 
-// Convert file → base64
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+<body>
+
+  <div class="container">
+
+    <h2>📧 LingoFormat</h2>
+
+    <div class="hint">
+      Upload EN HTML email + translation DOCX
+    </div>
+
+    <!-- HTML FILE -->
+    <input type="file" id="htmlFile" accept=".html" />
+
+    <!-- DOCX FILE -->
+    <input type="file" id="docxFile" accept=".docx" />
+
+    <!-- BUTTON -->
+    <button id="generateBtn">Generate Localized Emails</button>
+
+    <!-- STATUS -->
+    <div id="status"></div>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
