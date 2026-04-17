@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LingoFormat</title>
+  <title>LingoFormat – AI Email Processor</title>
 
   <style>
     body {
@@ -33,11 +33,25 @@
       margin-bottom: 20px;
     }
 
-    input[type="file"] {
-      display: block;
+    .upload-box {
       margin: 20px 0;
-      padding: 10px;
+      padding: 15px;
       background: #1f2937;
+      border: 1px solid #334155;
+      border-radius: 8px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      background: #0b1220;
       border: 1px solid #334155;
       border-radius: 6px;
       color: #fff;
@@ -52,6 +66,7 @@
       cursor: pointer;
       font-size: 14px;
       transition: 0.2s;
+      margin-top: 15px;
     }
 
     button:hover {
@@ -87,9 +102,20 @@
 
   <div class="container">
     <h1>📧 LingoFormat</h1>
-    <p>Upload HTML email and process it using AI-powered formatting & translation.</p>
+    <p>Upload HTML or DOCX email files for AI processing.</p>
 
-    <input type="file" id="htmlFile" accept=".html" />
+    <!-- HTML input -->
+    <div class="upload-box">
+      <label>HTML File</label>
+      <input type="file" id="htmlFile" accept=".html" />
+    </div>
+
+    <!-- DOCX input -->
+    <div class="upload-box">
+      <label>DOCX File</label>
+      <input type="file" id="docxFile" accept=".docx" />
+    </div>
+
     <button id="generateBtn">Generate</button>
 
     <div id="status">Idle</div>
@@ -97,7 +123,7 @@
     <div id="output">Output will appear here...</div>
 
     <div class="footer">
-      Powered by Vercel + OpenAI API
+      Powered by Vercel + AI API
     </div>
   </div>
 
