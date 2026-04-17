@@ -5,14 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function generate() {
-  console.log("inside generate");
-  
-  const fileInput = document.getElementById("htmlFile");
-  console.log("file input element:", fileInput);
-
-  console.log("files:", fileInput.files);
-  console.log("first file:", fileInput.files[0]);
-  
   const htmlFile = document.getElementById("htmlFile").files[0];
 
   if (!htmlFile) {
@@ -33,8 +25,10 @@ async function generate() {
     body: JSON.stringify({ html })
   });
 
-  console.log("AFTER fetch");
-    const data = await res.json();
+  
+    console.log("status:", res.status);
+const data = await res.json();
+console.log("response data:", data);
 
     document.getElementById("output").textContent = data.output;
 
