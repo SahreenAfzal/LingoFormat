@@ -1,4 +1,5 @@
 async function generate() {
+  console.log("JS loaded");
   alert("WORKING"); // test
 
   const htmlFile = document.getElementById("htmlFile").files[0];
